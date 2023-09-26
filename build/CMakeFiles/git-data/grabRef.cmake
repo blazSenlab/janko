@@ -18,7 +18,7 @@ set(HEAD_HASH)
 file(READ "C:/Users/bsmeh/OneDrive/Dokumenti/Ljubljana/Senlab/azure/sampleMqttEsp/esp-azure/examples/prov_dev_client_ll_sample/build/CMakeFiles/git-data/HEAD" HEAD_CONTENTS LIMIT 1024)
 
 string(STRIP "${HEAD_CONTENTS}" HEAD_CONTENTS)
-set(GIT_DIR "C:/Users/bsmeh/OneDrive/Dokumenti/Ljubljana/Senlab/azure/sampleMqttEsp/esp-azure/.git")
+set(GIT_DIR "C:/Users/bsmeh/OneDrive/Dokumenti/Ljubljana/Senlab/azure/sampleMqttEsp/esp-azure/examples/prov_dev_client_ll_sample/.git")
 # handle git-worktree
 if(EXISTS "${GIT_DIR}/commondir")
 	file(READ "${GIT_DIR}/commondir" GIT_DIR_NEW LIMIT 1024)

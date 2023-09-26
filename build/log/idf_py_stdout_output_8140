@@ -1,63 +1,0 @@
-[1/1] cmd.exe /C "cd /D C:\Users\bsmeh\OneDrive\Dokumenti\Ljubljana\Senlab\azure\sampleMqttEsp\esp-azure\examples\prov_dev_client_ll_sample\build && C:\Users\bsmeh\.espressif\python_env\idf5.0_py3.11_env\Scripts\python.exe C:/Users/bsmeh/esp/esp-idf/tools/idf_size.py --archives C:/Users/bsmeh/OneDrive/Dokumenti/Ljubljana/Senlab/azure/sampleMqttEsp/esp-azure/examples/prov_dev_client_ll_sample/build/prov_dev_client_ll_sample.map"
-Total sizes:
-Used static DRAM:   33600 bytes ( 147136 remain, 18.6% used)
-      .data size:   15040 bytes
-      .bss  size:   18560 bytes
-Used static IRAM:   87130 bytes (  43942 remain, 66.5% used)
-      .text size:   86103 bytes
-   .vectors size:    1027 bytes
-Used Flash size :  944387 bytes
-      .text     :  726607 bytes
-      .rodata   :  217524 bytes
-Total image size: 1046557 bytes (.bin may be padded larger)
-Per-archive contributions to ELF file:
-            Archive File DRAM .data & 0.bss IRAM0 .text & 0.vectors ram_st_total Flash .text & .rodata & .rodata_noload & .appdesc flash_total
-               libport.a       1524     408           0           0         1932      121840     71265                0          0      194629
-         libmbedcrypto.a         64      85          30           0          179       78962     44956                0          0      124012
-           libnet80211.a        752    7085        5067           0        12904      105439     12157             8053          0      123415
-               liblwip.a         16    3762           0           0         3778       99445     15947                0          0      115408
-                  libc.a        100      34           0           0          134       80644      7837                0          0       88581
-                 libpp.a       2443    1388       18152           0        21983       36526      4619              100          0       61740
-     libwpa_supplicant.a          8    1256           0           0         1264       47596      1292                0          0       48896
-                libphy.a       1530     641        8922           0        11093       28961         0                0          0       39413
-            libmbedtls.a         94     240           0           0          334       26857      4196                0          0       31147
-           libfreertos.a       3100     749       15820         424        20093         565      4837                0          0       24746
-         libesp_system.a        729     303        4200           0         5232        7980      5041                0          0       17950
-     libesp_hw_support.a        414      78        5181           0         5673        8685      2413                0          0       16693
-          libnvs_flash.a          0      24           0           0           24       14187       592                0          0       14779
-          libspi_flash.a       1458     288        9958           0        11704         665      2393                0          0       14474
-               libheap.a          4       8        5128           0         5140        2961      4531                0          0       12624
-                libvfs.a        308      60           0           0          368        8806       715                0          0        9829
-           libmbedx509.a          0       0           0           0            0        8113      1367                0          0        9480
-          libesp_netif.a          8      33           0           0           41        6666      2292                0          0        8966
-            libesp-tls.a          0       4           0           0            4        5044      3161                0          0        8205
-               libmain.a         80    1028           0           0         1108        2115      5474                0          0        7669
-         libesp_common.a          0       0           0           0            0          51      7584                0          0        7635
-                libhal.a        369       8        4479           0         4856        2220       524                0          0        7592
-           libesp_wifi.a        484      34         408           0          926        3102      1734                0          0        5728
-                  libm.a          0       0           0           0            0        5149        48                0          0        5197
-          libesp_timer.a         32      24        1647           0         1703        1316      1042                0          0        4037
-          libesp_event.a          0       4           0           0            4        2904       995                0          0        3899
-             libstdc++.a          8      36           0           0           44        2123      1468                0          0        3599
-             libnewlib.a        239     440        1494           0         2173        1369       340                0          0        3442
-            libesp_phy.a         16      25         173           0          214        1843      1337                0          0        3369
-             libdriver.a         56      12           0           0           68        2475       688                0          0        3219
-              libefuse.a         36       4           0           0           40        1266       793                0          0        2095
-      libesp_partition.a          0       8           0           0            8        1616       477                0          0        2093
- libbootloader_support.a          0       0        1820           0         1820          39       167                0          0        2026
-            libpthread.a         16      12         231           0          259         884       468                0          0        1599
-        libesp_ringbuf.a          0       0         883           0          883           0       512                0          0        1395
-             libxtensa.a       1024       0          77           0         1101         119        35                0          0        1255
-                liblog.a          8     272         276           0          556         823       144                0          0        1251
-                libsoc.a          0       0          37           0           37          39      1168                0          0        1244
-     libesp_app_format.a          1       8         190           0          199          27         4                0        256         478
-             libxt_hal.a          0       0         443           0          443           0        32                0          0         475
-                librtc.a          0       0         456           0          456           0         0                0          0         456
-                libgcc.a          0       0           0           0            0         210       160                0          0         370
-               libcore.a          0      33           0           0           33         247        48                0          0         295
-         libapp_update.a          0       4           0           0            4         156       125                0          0         281
-            libesp_rom.a          0       0         187           0          187           0         0                0          0         187
-                libcxx.a          0       0           0           0            0          44         0                0          0          44
-                   (exe)          0       0           0           3            3           3        12                0          0          18
-        libhttp_parser.a          0       0           0           0            0           0         0                0          0           0
-               libmesh.a          0       0           0           0            0           0         0                0          0           0

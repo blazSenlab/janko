@@ -1,7 +1,7 @@
 {
     "version":            "1",
     "project_name":       "prov_dev_client_ll_sample",
-    "project_version":    "v1.0-33-g15ef01e-dirty",
+    "project_version":    "05601c8-dirty",
     "project_path":       "C:/Users/bsmeh/OneDrive/Dokumenti/Ljubljana/Senlab/azure/sampleMqttEsp/esp-azure/examples/prov_dev_client_ll_sample",
     "idf_path":           "C:/Users/bsmeh/esp/esp-idf",
     "build_dir":          "C:/Users/bsmeh/OneDrive/Dokumenti/Ljubljana/Senlab/azure/sampleMqttEsp/esp-azure/examples/prov_dev_client_ll_sample/build",
@@ -744,7 +744,7 @@
             "managed_reqs": [],
             "managed_priv_reqs": [],
             "file": "C:/Users/bsmeh/OneDrive/Dokumenti/Ljubljana/Senlab/azure/sampleMqttEsp/esp-azure/examples/prov_dev_client_ll_sample/build/esp-idf/main/libmain.a",
-            "sources": [ "C:/Users/bsmeh/OneDrive/Dokumenti/Ljubljana/Senlab/azure/sampleMqttEsp/esp-azure/examples/prov_dev_client_ll_sample/main/azure_main.c", "C:/Users/bsmeh/OneDrive/Dokumenti/Ljubljana/Senlab/azure/sampleMqttEsp/esp-azure/examples/prov_dev_client_ll_sample/main/custom_hsm_x509.c", "C:/Users/bsmeh/OneDrive/Dokumenti/Ljubljana/Senlab/azure/sampleMqttEsp/esp-azure/examples/prov_dev_client_ll_sample/main/prov_dev_client_ll_sample.c", "C:/Users/bsmeh/OneDrive/Dokumenti/Ljubljana/Senlab/azure/sampleMqttEsp/esp-azure/examples/prov_dev_client_ll_sample/build/leaf_certificate.pem.S", "C:/Users/bsmeh/OneDrive/Dokumenti/Ljubljana/Senlab/azure/sampleMqttEsp/esp-azure/examples/prov_dev_client_ll_sample/build/leaf_private_key.pem.S" ],
+            "sources": [ "C:/Users/bsmeh/OneDrive/Dokumenti/Ljubljana/Senlab/azure/sampleMqttEsp/esp-azure/examples/prov_dev_client_ll_sample/main/azure_main.c", "C:/Users/bsmeh/OneDrive/Dokumenti/Ljubljana/Senlab/azure/sampleMqttEsp/esp-azure/examples/prov_dev_client_ll_sample/main/azure_connection/azure_connection.c", "C:/Users/bsmeh/OneDrive/Dokumenti/Ljubljana/Senlab/azure/sampleMqttEsp/esp-azure/examples/prov_dev_client_ll_sample/main/custom_hsm_x509.c", "C:/Users/bsmeh/OneDrive/Dokumenti/Ljubljana/Senlab/azure/sampleMqttEsp/esp-azure/examples/prov_dev_client_ll_sample/build/leaf_certificate.pem.S", "C:/Users/bsmeh/OneDrive/Dokumenti/Ljubljana/Senlab/azure/sampleMqttEsp/esp-azure/examples/prov_dev_client_ll_sample/build/leaf_private_key.pem.S" ],
             "include_dirs": [ "." ]
         },
         "mbedtls": {

@@ -23,6 +23,8 @@
 
 #include "nvs_flash.h"
 
+#include "azure_connection/azure_connection.h"
+
 #define EXAMPLE_WIFI_SSID CONFIG_WIFI_SSID
 #define EXAMPLE_WIFI_PASS CONFIG_WIFI_PASSWORD
 
@@ -38,6 +40,15 @@ static EventGroupHandle_t wifi_event_group;
 const int CONNECTED_BIT = BIT0;
 
 static const char *TAG = "azure";
+
+SECURE_DEVICE_TYPE hsm_type;
+PROV_DEVICE_TRANSPORT_PROVIDER_FUNCTION prov_transport;
+IOTHUB_CLIENT_TRANSPORT_PROVIDER iothub_transport;
+IOTHUB_DEVICE_CLIENT_LL_HANDLE device_ll_handle;
+CLIENT_SAMPLE_INFO user_ctx;
+IOTHUB_CLIENT_SAMPLE_INFO iothub_info;
+PROV_DEVICE_LL_HANDLE handle;
+bool traceOn;
 
 #ifdef CONFIG_IDF_TARGET_ESP8266 || (ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(4, 0, 0))
 static esp_err_t event_handler(void *ctx, system_event_t *event)
@@ -113,14 +124,30 @@ static void initialise_wifi(void)
     ESP_ERROR_CHECK( esp_wifi_start() );
 }
 
-extern int prov_dev_client_ll_sample_run();
 void azure_task(void *pvParameter)
 {
     xEventGroupWaitBits(wifi_event_group, CONNECTED_BIT,
                         false, true, portMAX_DELAY);
     ESP_LOGI(TAG, "Connected to AP success!");
 
-    prov_dev_client_ll_sample_run();
+    // Initialize IoT Hub
+    init_iot_hub(&hsm_type, &traceOn, &prov_transport, &user_ctx);
+
+    if (!provisioning(&handle, &traceOn, &user_ctx, &prov_transport)) {
+        ESP_LOGE(TAG, "Provisioning failed!");
+        vTaskDelete(NULL);
+        return;
+    }
+
+    // Create IoT device handle
+    if (!create_iot_device_handle(&traceOn, &iothub_transport, &device_ll_handle, &user_ctx)) {
+        ESP_LOGE(TAG, "Failed to create IoT device handle!");
+        vTaskDelete(NULL);
+        return;
+    }
+    
+    // Send message
+    sendMessage(&device_ll_handle, &user_ctx);
 
     vTaskDelete(NULL);
 }

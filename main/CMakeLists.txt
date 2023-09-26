@@ -1,6 +1,6 @@
 set(COMPONENT_SRCS "azure_main.c"
+				"azure_connection/azure_connection.c"
 				"custom_hsm_x509.c"
-				"prov_dev_client_ll_sample.c"
 				)
 set(COMPONENT_ADD_INCLUDEDIRS ".")
 
