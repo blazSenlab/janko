@@ -1,4 +1,4 @@
-/* * Data converted from C:/Users/bsmeh/OneDrive/Dokumenti/Ljubljana/Senlab/azure/sampleMqttEsp/esp-azure/examples/prov_dev_client_ll_sample/build/esp-idf/mbedtls/x509_crt_bundle
+/* * Data converted from C:/Users/bsmeh/OneDrive/Dokumenti/Ljubljana/Senlab/azure/s/examples/prov_dev_client_ll_sample/build/esp-idf/mbedtls/x509_crt_bundle
  */
 .data
 .section .rodata.embedded

@@ -23,13 +23,16 @@
 
 #include "nvs_flash.h"
 
-#include "azure_connection/azure_connection.h"
+#include "../components/azure_connection/azure_connection.h"
+// #include "azure_connection.h"
+#include "wifi_connection.h"
+#include "../components/https_request/https_request.c"
 
 #define EXAMPLE_WIFI_SSID CONFIG_WIFI_SSID
 #define EXAMPLE_WIFI_PASS CONFIG_WIFI_PASSWORD
 
 /* FreeRTOS event group to signal when we are connected & ready to make a request */
-static EventGroupHandle_t wifi_event_group;
+// static EventGroupHandle_t wifi_event_group;
 
 #ifndef BIT0
 #define BIT0 (0x1 << 0)
@@ -37,9 +40,9 @@ static EventGroupHandle_t wifi_event_group;
 /* The event group allows multiple bits for each event,
    but we only care about one event - are we connected
    to the AP with an IP? */
-const int CONNECTED_BIT = BIT0;
+// const int CONNECTED_BIT = BIT0;
 
-static const char *TAG = "azure";
+// static const char *TAG = "azure";
 
 SECURE_DEVICE_TYPE hsm_type;
 PROV_DEVICE_TRANSPORT_PROVIDER_FUNCTION prov_transport;
@@ -50,79 +53,6 @@ IOTHUB_CLIENT_SAMPLE_INFO iothub_info;
 PROV_DEVICE_LL_HANDLE handle;
 bool traceOn;
 
-#ifdef CONFIG_IDF_TARGET_ESP8266 || (ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(4, 0, 0))
-static esp_err_t event_handler(void *ctx, system_event_t *event)
-{
-    switch(event->event_id) {
-    case SYSTEM_EVENT_STA_START:
-        esp_wifi_connect();
-        break;
-    case SYSTEM_EVENT_STA_GOT_IP:
-        xEventGroupSetBits(wifi_event_group, CONNECTED_BIT);
-        break;
-    case SYSTEM_EVENT_STA_DISCONNECTED:
-        /* This is a workaround as ESP platform WiFi libs don't currently
-           auto-reassociate. */
-        esp_wifi_connect();
-        xEventGroupClearBits(wifi_event_group, CONNECTED_BIT);
-        break;
-    default:
-        break;
-    }
-    return ESP_OK;
-}
-#else
-static void event_handler(void* arg, esp_event_base_t event_base,
-                          int32_t event_id, void* event_data)
-{
-    if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
-        esp_wifi_connect();
-    } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
-        xEventGroupSetBits(wifi_event_group, CONNECTED_BIT);
-    } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
-        /* This is a workaround as ESP platform WiFi libs don't currently
-           auto-reassociate. */
-        esp_wifi_connect();
-        xEventGroupClearBits(wifi_event_group, CONNECTED_BIT);
-    }
-}
-#endif
-
-static void initialise_wifi(void)
-{
-#ifdef CONFIG_IDF_TARGET_ESP8266 || (ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(4, 0, 0))
-    tcpip_adapter_init();
-    wifi_event_group = xEventGroupCreate();
-    ESP_ERROR_CHECK( esp_event_loop_init(event_handler, NULL) );
-#else
-    ESP_ERROR_CHECK( esp_netif_init() );
-    wifi_event_group = xEventGroupCreate();
-    ESP_ERROR_CHECK( esp_event_loop_create_default() );
-    esp_netif_t *sta_netif = esp_netif_create_default_wifi_sta();
-    assert(sta_netif);
-#endif
-
-    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-    ESP_ERROR_CHECK( esp_wifi_init(&cfg) );
-    ESP_ERROR_CHECK( esp_wifi_set_storage(WIFI_STORAGE_RAM) );
-    wifi_config_t wifi_config = {
-        .sta = {
-            .ssid = EXAMPLE_WIFI_SSID,
-            .password = EXAMPLE_WIFI_PASS,
-        },
-    };
-    ESP_LOGI(TAG, "Setting WiFi configuration SSID %s...", wifi_config.sta.ssid);
-
-#ifdef CONFIG_IDF_TARGET_ESP8266 || (ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(4, 0, 0))
-#else
-    ESP_ERROR_CHECK( esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &event_handler, NULL) );
-    ESP_ERROR_CHECK( esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &event_handler, NULL) );
-#endif
-
-    ESP_ERROR_CHECK( esp_wifi_set_mode(WIFI_MODE_STA) );
-    ESP_ERROR_CHECK( esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config) );
-    ESP_ERROR_CHECK( esp_wifi_start() );
-}
 
 void azure_task(void *pvParameter)
 {
@@ -142,12 +72,28 @@ void azure_task(void *pvParameter)
     // Create IoT device handle
     if (!create_iot_device_handle(&traceOn, &iothub_transport, &device_ll_handle, &user_ctx)) {
         ESP_LOGE(TAG, "Failed to create IoT device handle!");
+        vTaskDelay(10000 / portTICK_PERIOD_MS); // Delay for 1 second
         vTaskDelete(NULL);
         return;
     }
     
-    // Send message
-    sendMessage(&device_ll_handle, &user_ctx);
+    const unsigned char buffer[] = "Your message content here"; // Replace with your actual message content
+    size_t buffer_length = sizeof(buffer) - 1; // Subtract 1 to exclude the null terminator
+
+    int i = 0;
+
+    // Repeatedly send the message every 1 second
+    while (i < 10) {
+        sendMessage(&device_ll_handle, &user_ctx, buffer, buffer_length);
+        vTaskDelay(1000 / portTICK_PERIOD_MS); // Delay for 1 second
+        i = i + 1;
+        (void)printf("i: %d", i);
+    }
+
+    disconnect_and_deinit(&device_ll_handle, &user_ctx);
+
+    // This line will never be reached due to the infinite loop above
+    // vTaskDelete(NULL);
 
     vTaskDelete(NULL);
 }
@@ -161,10 +107,15 @@ void app_main()
         ret = nvs_flash_init();
     }
     ESP_ERROR_CHECK( ret );
+    // ESP_ERROR_CHECK(esp_netif_init());
+    // ESP_ERROR_CHECK(esp_event_loop_create_default());
 
     initialise_wifi();
 
-    if ( xTaskCreate(&azure_task, "azure_task", 1024 * 5, NULL, 5, NULL) != pdPASS ) {
-        printf("create azure task failed\r\n");
+    if (esp_reset_reason() == ESP_RST_POWERON) {
+        ESP_LOGI(TAG, "Updating time from NVS");
+        ESP_ERROR_CHECK(update_time_from_nvs());
     }
+
+    xTaskCreate(&https_request_task, "https_get_task", 8192, NULL, 5, NULL);
 }

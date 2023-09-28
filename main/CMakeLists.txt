@@ -1,5 +1,6 @@
 set(COMPONENT_SRCS "azure_main.c"
-				"azure_connection/azure_connection.c"
+				"../components/azure_connection/azure_connection.c"
+				"../components/https_request/https_request.c"
 				"custom_hsm_x509.c"
 				)
 set(COMPONENT_ADD_INCLUDEDIRS ".")

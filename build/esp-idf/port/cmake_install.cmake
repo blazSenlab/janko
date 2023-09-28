@@ -1,4 +1,4 @@
-# Install script for directory: C:/Users/bsmeh/OneDrive/Dokumenti/Ljubljana/Senlab/azure/sampleMqttEsp/esp-azure/port
+# Install script for directory: C:/Users/bsmeh/OneDrive/Dokumenti/Ljubljana/Senlab/azure/s/port
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

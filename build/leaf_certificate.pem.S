@@ -1,4 +1,4 @@
-/* * Data converted from C:/Users/bsmeh/OneDrive/Dokumenti/Ljubljana/Senlab/azure/sampleMqttEsp/esp-azure/examples/prov_dev_client_ll_sample/main/certs/leaf_certificate.pem
+/* * Data converted from C:/Users/bsmeh/OneDrive/Dokumenti/Ljubljana/Senlab/azure/s/examples/prov_dev_client_ll_sample/main/certs/leaf_certificate.pem
  * (null byte appended)
  */
 .data

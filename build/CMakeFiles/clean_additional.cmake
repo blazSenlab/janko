@@ -18,9 +18,11 @@ if("${CONFIG}" STREQUAL "" OR "${CONFIG}" STREQUAL "")
   "ldgen_libraries.in"
   "leaf_certificate.pem.S"
   "leaf_private_key.pem.S"
+  "local_server_cert.pem.S"
   "project_elf_src_esp32.c"
   "prov_dev_client_ll_sample.bin"
   "prov_dev_client_ll_sample.map"
+  "server_root_cert.pem.S"
   "x509_crt_bundle.S"
   )
 endif()

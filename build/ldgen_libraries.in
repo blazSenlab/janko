@@ -60,3 +60,7 @@ $<TARGET_FILE:__idf_ulp>
 $<TARGET_FILE:__idf_wifi_provisioning>
 $<TARGET_FILE:__idf_main>
 $<TARGET_FILE:__idf_port>
+$<TARGET_FILE:__idf_esp_2_nrf>
+$<TARGET_FILE:__idf_https_request>
+$<TARGET_FILE:__idf_wifi_connection>
+$<TARGET_FILE:__idf_protocol_examples_common>
