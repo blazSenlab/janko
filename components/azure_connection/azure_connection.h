@@ -21,7 +21,6 @@
 extern SECURE_DEVICE_TYPE hsm_type;
 extern PROV_DEVICE_TRANSPORT_PROVIDER_FUNCTION prov_transport;
 extern IOTHUB_CLIENT_TRANSPORT_PROVIDER iothub_transport;
-extern IOTHUB_DEVICE_CLIENT_LL_HANDLE device_ll_handle;
 
 typedef struct CLIENT_SAMPLE_INFO_TAG
 {
@@ -49,13 +48,13 @@ extern bool traceOn;
 
 void init_iot_hub(SECURE_DEVICE_TYPE *hsm_type, bool *traceOn, PROV_DEVICE_TRANSPORT_PROVIDER_FUNCTION *prov_transport, CLIENT_SAMPLE_INFO *user_ctx);
 
-bool create_iot_device_handle(bool *traceOn, IOTHUB_CLIENT_TRANSPORT_PROVIDER *iothub_transport, IOTHUB_DEVICE_CLIENT_LL_HANDLE *device_ll_handle, CLIENT_SAMPLE_INFO *user_ctx);
+bool create_iot_device_handle(bool *traceOn, IOTHUB_CLIENT_TRANSPORT_PROVIDER *iothub_transport, CLIENT_SAMPLE_INFO *user_ctx);
 
 bool provisioning(PROV_DEVICE_LL_HANDLE *handle, bool *traceOn, CLIENT_SAMPLE_INFO *user_ctx, PROV_DEVICE_TRANSPORT_PROVIDER_FUNCTION *prov_transport);
 
-void sendMessage(IOTHUB_DEVICE_CLIENT_LL_HANDLE *device_ll_handle, CLIENT_SAMPLE_INFO *user_ctx, const unsigned char* buffer, size_t buffer_length);
+void sendMessage(const unsigned char* buffer, size_t buffer_length);
 
-void disconnect_and_deinit(IOTHUB_DEVICE_CLIENT_LL_HANDLE *device_ll_handle, CLIENT_SAMPLE_INFO *user_ctx);
+void disconnect_and_deinit(CLIENT_SAMPLE_INFO *user_ctx);
 
 
 #endif

@@ -37,6 +37,8 @@ static const char* id_scope = CONFIG_DPS_ID_SCOPE;
 #define MESSAGES_TO_SEND            2
 #define TIME_BETWEEN_MESSAGES       2
 
+IOTHUB_DEVICE_CLIENT_LL_HANDLE *device_ll_handle = NULL;
+
 static IOTHUBMESSAGE_DISPOSITION_RESULT receive_msg_callback(IOTHUB_MESSAGE_HANDLE message, void* user_context)
 {
     (void)message;
@@ -125,14 +127,14 @@ void init_iot_hub(SECURE_DEVICE_TYPE *hsm_type, bool *traceOn, PROV_DEVICE_TRANS
     user_ctx->sleep_time = 10;
 }
 
-bool create_iot_device_handle(bool *traceOn, IOTHUB_CLIENT_TRANSPORT_PROVIDER *iothub_transport, IOTHUB_DEVICE_CLIENT_LL_HANDLE *device_ll_handle, CLIENT_SAMPLE_INFO *user_ctx)
+bool create_iot_device_handle(bool *traceOn, IOTHUB_CLIENT_TRANSPORT_PROVIDER *iothub_transport, CLIENT_SAMPLE_INFO *user_ctx)
 {
-    if (!traceOn || !iothub_transport || !device_ll_handle || !user_ctx) {
+    if (!traceOn || !iothub_transport || !user_ctx) {
         return false;
     }
 
     (void)printf("Creating IoTHub Device handle\r\n");
-    if ((*device_ll_handle = IoTHubDeviceClient_LL_CreateFromDeviceAuth(user_ctx->iothub_uri, user_ctx->device_id, MQTT_Protocol)) == NULL)
+    if ((device_ll_handle = IoTHubDeviceClient_LL_CreateFromDeviceAuth(user_ctx->iothub_uri, user_ctx->device_id, MQTT_Protocol)) == NULL)
     {
         (void)printf("failed create IoTHub client from connection string %s!\r\n", user_ctx->iothub_uri);
         return false;
@@ -149,7 +151,7 @@ bool create_iot_device_handle(bool *traceOn, IOTHUB_CLIENT_TRANSPORT_PROVIDER *i
 
         (void)printf("iothub: %d, %d \r\n", iothub_info.stop_running, iothub_info.connected);
 
-        IOTHUB_CLIENT_RESULT result = IoTHubDeviceClient_LL_SetConnectionStatusCallback(*device_ll_handle, iothub_connection_status, &iothub_info);
+        IOTHUB_CLIENT_RESULT result = IoTHubDeviceClient_LL_SetConnectionStatusCallback(device_ll_handle, iothub_connection_status, &iothub_info);
         if(result == IOTHUB_CLIENT_OK){
             (void)printf("successful\r\n");
         } else {
@@ -158,7 +160,7 @@ bool create_iot_device_handle(bool *traceOn, IOTHUB_CLIENT_TRANSPORT_PROVIDER *i
             (void)printf("Error code: %d\r\n", result);
             return false;
         }
-        result = IoTHubDeviceClient_LL_SetOption(*device_ll_handle, OPTION_LOG_TRACE, traceOn);
+        result = IoTHubDeviceClient_LL_SetOption(device_ll_handle, OPTION_LOG_TRACE, traceOn);
         if(result == IOTHUB_CLIENT_OK){
             (void)printf("successful\r\n");
         } else {
@@ -170,7 +172,7 @@ bool create_iot_device_handle(bool *traceOn, IOTHUB_CLIENT_TRANSPORT_PROVIDER *i
 #ifdef SET_TRUSTED_CERT_IN_SAMPLES
         // Setting the Trusted Certificate.  This is only necessary on system with without
         // built in certificate stores.
-        IoTHubDeviceClient_LL_SetOption(*device_ll_handle, OPTION_TRUSTED_CERT, certificates);
+        IoTHubDeviceClient_LL_SetOption(device_ll_handle, OPTION_TRUSTED_CERT, certificates);
 #endif // SET_TRUSTED_CERT_IN_SAMPLES
     }
 
@@ -230,16 +232,9 @@ bool provisioning(PROV_DEVICE_LL_HANDLE *handle, bool *traceOn, CLIENT_SAMPLE_IN
     return true;
 }
 
-void sendMessage(IOTHUB_DEVICE_CLIENT_LL_HANDLE *device_ll_handle, CLIENT_SAMPLE_INFO *user_ctx, const unsigned char* buffer, size_t buffer_length)
+void sendMessage(const unsigned char* buffer, size_t buffer_length)
 {
-    if (!device_ll_handle || !user_ctx || !buffer) {
-        return;
-    }
-
-    // Set the message callback
-    IOTHUB_CLIENT_RESULT result = IoTHubDeviceClient_LL_SetMessageCallback(*device_ll_handle, receive_msg_callback, &iothub_info);
-    if(result != IOTHUB_CLIENT_OK){
-        (void)printf("Error setting message callback. Error code: %d\r\n", result);
+    if (!buffer) {
         return;
     }
 
@@ -255,7 +250,7 @@ void sendMessage(IOTHUB_DEVICE_CLIENT_LL_HANDLE *device_ll_handle, CLIENT_SAMPLE
         else
         {
             // Send the message
-            if (IoTHubDeviceClient_LL_SendEventAsync(*device_ll_handle, msg_handle, NULL, NULL) != IOTHUB_CLIENT_OK)
+            if (IoTHubDeviceClient_LL_SendEventAsync(device_ll_handle, msg_handle, NULL, NULL) != IOTHUB_CLIENT_OK)
             {
                 (void)printf("ERROR: IoTHubClient_LL_SendEventAsync..........FAILED!\r\n");
             }
@@ -268,18 +263,18 @@ void sendMessage(IOTHUB_DEVICE_CLIENT_LL_HANDLE *device_ll_handle, CLIENT_SAMPLE
     }
 
     // Perform any pending work related to the IoT Hub client
-    IoTHubDeviceClient_LL_DoWork(*device_ll_handle);
+    IoTHubDeviceClient_LL_DoWork(device_ll_handle);
 }
 
-void disconnect_and_deinit(IOTHUB_DEVICE_CLIENT_LL_HANDLE *device_ll_handle, CLIENT_SAMPLE_INFO *user_ctx)
+void disconnect_and_deinit(CLIENT_SAMPLE_INFO *user_ctx)
 {
-    if (!device_ll_handle || !user_ctx) {
+    if (!user_ctx) {
         return;
     }
 
     (void)printf("disconnecting");
 
-    IoTHubDeviceClient_LL_Destroy(*device_ll_handle);
+    IoTHubDeviceClient_LL_Destroy(device_ll_handle);
     free(user_ctx->iothub_uri);
     free(user_ctx->device_id);
     prov_dev_security_deinit();

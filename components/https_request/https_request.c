@@ -45,11 +45,6 @@ static char response_buffer[RESPONSE_BUFFER_SIZE];
 /* Timer interval once every day (24 Hours) */
 #define TIME_PERIOD (86400000000ULL)
 
-// static const char HOWSMYSSL_REQUEST[] = "GET " WEB_URL " HTTP/1.1\r\n"
-//                              "Host: "WEB_SERVER"\r\n"
-//                              "User-Agent: esp-idf/1.0 esp32\r\n"
-//                              "\r\n";
-
 static const char RANGED_REQUEST_TEMPLATE[] = "GET " WEB_URL " HTTP/1.1\r\n"
                             "Host: "WEB_SERVER"\r\n"
                             "User-Agent: esp-idf/1.0 esp32\r\n"
@@ -87,11 +82,13 @@ extern const uint8_t local_server_cert_pem_end[]   asm("_binary_local_server_cer
 
 esp_tls_t *tls = NULL;
 
-static int https_request(esp_tls_cfg_t cfg, const char *WEB_SERVER_URL, const char *REQUEST, request_type_t reqType)
+#define BUFFER_SIZE 1024
+
+char *version = NULL;
+
+static int https_request(esp_tls_cfg_t cfg, const char *REQUEST, request_type_t reqType, uint8_t *buffer)
 {
-    char buf[1024];
-    char request[1024];
-    int ret, len;
+    int ret;
     char *content_length_ptr;
     int content_length_value = -1;
 
@@ -104,15 +101,24 @@ static int https_request(esp_tls_cfg_t cfg, const char *WEB_SERVER_URL, const ch
         return -1;
     }
 
-    // establish connection, with specified URL, cfg is TLS configuration
-
-    if (esp_tls_conn_http_new_sync(WEB_SERVER_URL, &cfg, tls) == 1) {
+    if(*REQUEST == GET_REQUEST1){
+        if (esp_tls_conn_http_new_sync(WEB_URL_1, &cfg, tls) == 1) {
         ESP_LOGI(TAG, "Connection established...");
+        } else {
+            ESP_LOGE(TAG, "Connection failed...");
+            esp_tls_conn_destroy(tls);
+            tls = NULL;
+            return -1;
+        }
     } else {
-        ESP_LOGE(TAG, "Connection failed...");
-        esp_tls_conn_destroy(tls);
-        tls = NULL;
-        return -1;
+        if (esp_tls_conn_http_new_sync(WEB_URL, &cfg, tls) == 1) {
+        ESP_LOGI(TAG, "Connection established...");
+        } else {
+            ESP_LOGE(TAG, "Connection failed...");
+            esp_tls_conn_destroy(tls);
+            tls = NULL;
+            return -1;
+        }
     }
 
     size_t written_bytes = 0;
@@ -134,9 +140,7 @@ static int https_request(esp_tls_cfg_t cfg, const char *WEB_SERVER_URL, const ch
     ESP_LOGI(TAG, "Reading HTTP response...");
 
     do {
-        len = sizeof(buf) - 1;
-        memset(buf, 0x00, sizeof(buf));
-        ret = esp_tls_conn_read(tls, (char *)buf, len);
+        ret = esp_tls_conn_read(tls, buffer, BUFFER_SIZE);
 
         if (ret == ESP_TLS_ERR_SSL_WANT_WRITE  || ret == ESP_TLS_ERR_SSL_WANT_READ) {
             continue;
@@ -144,30 +148,34 @@ static int https_request(esp_tls_cfg_t cfg, const char *WEB_SERVER_URL, const ch
             ESP_LOGE(TAG, "esp_tls_conn_read  returned [-0x%02X](%s)", -ret, esp_err_to_name(ret));
             break;
         } else if (ret == 0) {
-            for (int countdown = 1; countdown >= 0; countdown--) {
-                ESP_LOGI(TAG, "%d...", countdown);
-                vTaskDelay(1000 / portTICK_PERIOD_MS);
-            }
             ESP_LOGI(TAG, "connection closed");
             esp_tls_conn_destroy(tls);
             tls = NULL;
             break;
         }
 
-        len = ret;
-        ESP_LOGD(TAG, "%d bytes read", len);
-
-        strncat(response_buffer, buf, len);
-
-        // Check for Content-Length in the buffer
-        content_length_ptr = strstr(buf, "Content-Length: ");
+        content_length_ptr = strstr((char*)buffer, "Content-Length: ");
         if (content_length_ptr) {
             sscanf(content_length_ptr, "Content-Length: %d", &content_length_value);
-            ESP_LOGI(TAG, "Content-Length is %d", content_length_value);
+            (void)printf("Content-Length is %d", content_length_value);
         }
 
-        if (reqType == REQUEST_HEAD_1 && strstr(buf, "\r\n\r\n")) {
+        if (reqType == REQUEST_HEAD_1 && strstr((char*)buffer, "\r\n\r\n")) {
             break;
+        }
+
+        int no1, no2, no3;
+
+        if(REQUEST == GET_REQUEST1){
+            version = strstr((char*)buffer, "\r\n\r\n");
+            (void)printf("\n\nret: %d \n\n", ret);
+            if (version != NULL){
+                sscanf(version, "\r\n\r\n%d.%d.%d", &no1, &no2, &no3);
+                version += 4;
+                (void)printf("version: %s\n", version);
+
+                (void)printf("%d, %d, %d", no1, no2, no3);
+            }
         }
 
     } while (1);
@@ -178,30 +186,6 @@ static int https_request(esp_tls_cfg_t cfg, const char *WEB_SERVER_URL, const ch
     return content_length_value;
 }
 
-void download_file_in_ranges(esp_tls_cfg_t cfg, const char *WEB_SERVER_URL) {
-    int total_size = https_request(cfg, WEB_SERVER_URL, HEAD_REQUEST, REQUEST_HEAD_1);
-    int buffer_size = 1024;  
-    int start_byte = 0;
-
-    char ranged_request[1024];
-
-    while (start_byte < total_size) {
-        int end_byte = start_byte + buffer_size - 1;
-        if (end_byte >= total_size) {
-            end_byte = total_size - 1;
-        }
-
-        // Construct the ranged request
-        sprintf(ranged_request, RANGED_REQUEST_TEMPLATE, start_byte, end_byte);
-
-        (void)printf("Ranged Request:\n%s\n", ranged_request);
-
-        https_request(cfg, WEB_SERVER_URL, ranged_request, REQUEST_GET);
-
-        start_byte = end_byte + 1;
-    }
-}
-
 int compare_version(){
     ESP_LOGI(TAG, "compare version of firmware");
     esp_tls_cfg_t cfg = {
@@ -209,14 +193,20 @@ int compare_version(){
         .cacert_bytes = server_root_cert_pem_end - server_root_cert_pem_start,
     };
 
-    const char *web_url = "https://ota.senlab.io/ota/tracccivil/test.txt";
+    uint8_t *buffer = NULL;
+    size_t actual_buffer_size = 1024;
+    size_t *buffer_size = &actual_buffer_size;
+    buffer = (uint8_t*)malloc(*buffer_size);
+    if(buffer == NULL){
+        (void)printf("malloc failed");
+        return false;
+    }
 
-    https_request(cfg, web_url, GET_REQUEST1, REQUEST_GET);
-    ESP_LOGI(TAG, "Response: %s", response_buffer);
+    https_request(cfg, GET_REQUEST1, REQUEST_GET, buffer);
     
     if(strcmp(response_buffer, "hello world") != 0){
         (void)printf("nova datoteka");
-        int i = https_request(cfg, WEB_URL, HEAD_REQUEST, REQUEST_HEAD_1);
+        int i = https_request(cfg, HEAD_REQUEST, REQUEST_HEAD_1, buffer);
         (void)printf(".bin file size: %d", i);
         return i;
     } else {
@@ -225,24 +215,73 @@ int compare_version(){
     }
 }
 
-static void https_get_request_using_cacert_buf(void)
+int start_byte = 0;
+int end_byte = 0;
+
+bool ranged_https_request(uint8_t **buffer, size_t *buffer_size)
 {
-    ESP_LOGI(TAG, "https_request using cacert_buf");
+    ESP_LOGI(TAG, "making ranged request");
     esp_tls_cfg_t cfg = {
         .cacert_buf = (const unsigned char *) server_root_cert_pem_start,
         .cacert_bytes = server_root_cert_pem_end - server_root_cert_pem_start,
     };
-    download_file_in_ranges(cfg, WEB_URL);
+
+    char request_string[1024];
+
+    *buffer = (uint8_t*)malloc(*buffer_size);
+    if(*buffer == NULL){
+        (void)printf("malloc failed");
+        return false;
+    }
+
+    (void)printf("\n\nbuffer size: %d\n\n", *buffer_size);
+
+    int total_size = https_request(cfg, HEAD_REQUEST, REQUEST_HEAD_1, *buffer); 
+
+    end_byte = start_byte + BUFFER_SIZE - 1;
+
+    if (end_byte >= total_size){
+        end_byte = total_size - 1;
+    }
+
+    // while (start_byte < total_size) {
+    //     int end_byte = start_byte + BUFFER_SIZE - 1;
+    //     if (end_byte >= total_size) {
+    //         end_byte = total_size - 1;
+    //     }
+
+    // Construct the ranged request
+    sprintf(request_string, RANGED_REQUEST_TEMPLATE, start_byte, end_byte);
+
+    (void)printf("Ranged Request:\n%s\n", request_string);
+
+    // (void)printf("\n\n Making https request again \n\n");
+
+    https_request(cfg, request_string, REQUEST_GET, *buffer);
+
+    start_byte = end_byte + 1;
+    // }
+    if(end_byte < total_size){
+        return true;
+    } else {
+        return false;
+    }
+    
 }
 
-static void https_request_task(void *pvparameters)
-{
-    ESP_LOGI(TAG, "Start https_request example");
+// static void https_request_task(void *pvparameters)
+// {
+//     ESP_LOGI(TAG, "Start https_request example");
 
-    ESP_LOGI(TAG, "Minimum free heap size: %" PRIu32 " bytes", esp_get_minimum_free_heap_size());
-    // https_get_request_using_cacert_buf();
-    compare_version();
-    ESP_LOGI(TAG, "Finish https_request example");
-    vTaskDelete(NULL);
-}
+//     uint8_t *actual_buffer = NULL;
+//     uint8_t **buffer = &actual_buffer;
+//     size_t actual_buffer_size = 1024;
+//     size_t *buffer_size = &actual_buffer_size;
+
+//     ESP_LOGI(TAG, "Minimum free heap size: %" PRIu32 " bytes", esp_get_minimum_free_heap_size());
+//     // ranged_https_request(buffer, buffer_size);
+//     compare_version();
+//     ESP_LOGI(TAG, "Finish https_request example");
+//     vTaskDelete(NULL);
+// }
 

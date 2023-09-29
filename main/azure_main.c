@@ -47,56 +47,55 @@
 SECURE_DEVICE_TYPE hsm_type;
 PROV_DEVICE_TRANSPORT_PROVIDER_FUNCTION prov_transport;
 IOTHUB_CLIENT_TRANSPORT_PROVIDER iothub_transport;
-IOTHUB_DEVICE_CLIENT_LL_HANDLE device_ll_handle;
 CLIENT_SAMPLE_INFO user_ctx;
 IOTHUB_CLIENT_SAMPLE_INFO iothub_info;
 PROV_DEVICE_LL_HANDLE handle;
 bool traceOn;
 
 
-void azure_task(void *pvParameter)
-{
-    xEventGroupWaitBits(wifi_event_group, CONNECTED_BIT,
-                        false, true, portMAX_DELAY);
-    ESP_LOGI(TAG, "Connected to AP success!");
+// void azure_task(void *pvParameter)
+// {
+//     xEventGroupWaitBits(wifi_event_group, CONNECTED_BIT,
+//                         false, true, portMAX_DELAY);
+//     ESP_LOGI(TAG, "Connected to AP success!");
 
-    // Initialize IoT Hub
-    init_iot_hub(&hsm_type, &traceOn, &prov_transport, &user_ctx);
+//     // Initialize IoT Hub
+//     init_iot_hub(&hsm_type, &traceOn, &prov_transport, &user_ctx);
 
-    if (!provisioning(&handle, &traceOn, &user_ctx, &prov_transport)) {
-        ESP_LOGE(TAG, "Provisioning failed!");
-        vTaskDelete(NULL);
-        return;
-    }
+//     if (!provisioning(&handle, &traceOn, &user_ctx, &prov_transport)) {
+//         ESP_LOGE(TAG, "Provisioning failed!");
+//         vTaskDelete(NULL);
+//         return;
+//     }
 
-    // Create IoT device handle
-    if (!create_iot_device_handle(&traceOn, &iothub_transport, &device_ll_handle, &user_ctx)) {
-        ESP_LOGE(TAG, "Failed to create IoT device handle!");
-        vTaskDelay(10000 / portTICK_PERIOD_MS); // Delay for 1 second
-        vTaskDelete(NULL);
-        return;
-    }
+//     // Create IoT device handle
+//     if (!create_iot_device_handle(&traceOn, &iothub_transport, &user_ctx)) {
+//         ESP_LOGE(TAG, "Failed to create IoT device handle!");
+//         vTaskDelay(10000 / portTICK_PERIOD_MS); // Delay for 1 second
+//         vTaskDelete(NULL);
+//         return;
+//     }
     
-    const unsigned char buffer[] = "Your message content here"; // Replace with your actual message content
-    size_t buffer_length = sizeof(buffer) - 1; // Subtract 1 to exclude the null terminator
+//     const unsigned char buffer[] = "Your message content here"; // Replace with your actual message content
+//     size_t buffer_length = sizeof(buffer) - 1; // Subtract 1 to exclude the null terminator
 
-    int i = 0;
+//     int i = 0;
 
-    // Repeatedly send the message every 1 second
-    while (i < 10) {
-        sendMessage(&device_ll_handle, &user_ctx, buffer, buffer_length);
-        vTaskDelay(1000 / portTICK_PERIOD_MS); // Delay for 1 second
-        i = i + 1;
-        (void)printf("i: %d", i);
-    }
+//     // Repeatedly send the message every 1 second
+//     while (i < 10) {
+//         sendMessage(buffer, buffer_length);
+//         vTaskDelay(1000 / portTICK_PERIOD_MS); // Delay for 1 second
+//         i = i + 1;
+//         (void)printf("i: %d", i);
+//     }
 
-    disconnect_and_deinit(&device_ll_handle, &user_ctx);
+//     disconnect_and_deinit(&user_ctx);
 
-    // This line will never be reached due to the infinite loop above
-    // vTaskDelete(NULL);
+//     // This line will never be reached due to the infinite loop above
+//     // vTaskDelete(NULL);
 
-    vTaskDelete(NULL);
-}
+//     vTaskDelete(NULL);
+// }
 
 void app_main()
 {
@@ -118,4 +117,7 @@ void app_main()
     }
 
     xTaskCreate(&https_request_task, "https_get_task", 8192, NULL, 5, NULL);
+    // if ( xTaskCreate(&azure_task, "azure_task", 1024 * 5, NULL, 5, NULL) != pdPASS ) {
+    //     printf("create azure task failed\r\n");
+    // }
 }

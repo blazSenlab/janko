@@ -1,7 +1,7 @@
 {
     "version":            "1",
     "project_name":       "prov_dev_client_ll_sample",
-    "project_version":    "ee60c95-dirty",
+    "project_version":    "4891be8-dirty",
     "project_path":       "C:/Users/bsmeh/OneDrive/Dokumenti/Ljubljana/Senlab/azure/s/examples/prov_dev_client_ll_sample",
     "idf_path":           "C:/Users/bsmeh/esp/esp-idf",
     "build_dir":          "C:/Users/bsmeh/OneDrive/Dokumenti/Ljubljana/Senlab/azure/s/examples/prov_dev_client_ll_sample/build",
